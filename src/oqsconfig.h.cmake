@@ -188,3 +188,8 @@
 #cmakedefine OQS_ENABLE_SIG_sphincs_shake_256s_simple 1
 #cmakedefine OQS_ENABLE_SIG_sphincs_shake_256s_simple_avx2 1
 ///// OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ALG_ENABLE_DEFINES_END
+
+#cmakedefine OQS_ENABLE_SIG_KAZ_SIGN 1
+#cmakedefine OQS_ENABLE_SIG_kaz_sign_1 1
+#cmakedefine OQS_ENABLE_SIG_kaz_sign_3 1
+#cmakedefine OQS_ENABLE_SIG_kaz_sign_5 1

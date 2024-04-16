@@ -10,51 +10,56 @@ set(KEM_OBJS "")
 set(SIG_OBJS "")
 
 if(${OQS_ENABLE_KEM_BIKE})
-    add_subdirectory(kem/bike)
-    set(KEM_OBJS ${KEM_OBJS} ${BIKE_OBJS})
+  add_subdirectory(kem/bike)
+  set(KEM_OBJS ${KEM_OBJS} ${BIKE_OBJS})
 endif()
 if(${OQS_ENABLE_KEM_FRODOKEM})
-    add_subdirectory(kem/frodokem)
-    set(KEM_OBJS ${KEM_OBJS} ${FRODOKEM_OBJS})
+  add_subdirectory(kem/frodokem)
+  set(KEM_OBJS ${KEM_OBJS} ${FRODOKEM_OBJS})
 endif()
 if(OQS_ENABLE_KEM_NTRUPRIME)
-    add_subdirectory(kem/ntruprime)
-    set(KEM_OBJS ${KEM_OBJS} ${NTRUPRIME_OBJS})
+  add_subdirectory(kem/ntruprime)
+  set(KEM_OBJS ${KEM_OBJS} ${NTRUPRIME_OBJS})
 endif()
-##### OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ALG_OBJECTS_START
+# # # ## OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ALG_OBJECTS_START
 if(OQS_ENABLE_KEM_CLASSIC_MCELIECE)
-    add_subdirectory(kem/classic_mceliece)
-    set(KEM_OBJS ${KEM_OBJS} ${CLASSIC_MCELIECE_OBJS})
+  add_subdirectory(kem/classic_mceliece)
+  set(KEM_OBJS ${KEM_OBJS} ${CLASSIC_MCELIECE_OBJS})
 endif()
 if(OQS_ENABLE_KEM_HQC)
-    add_subdirectory(kem/hqc)
-    set(KEM_OBJS ${KEM_OBJS} ${HQC_OBJS})
+  add_subdirectory(kem/hqc)
+  set(KEM_OBJS ${KEM_OBJS} ${HQC_OBJS})
 endif()
 if(OQS_ENABLE_KEM_KYBER)
-    add_subdirectory(kem/kyber)
-    set(KEM_OBJS ${KEM_OBJS} ${KYBER_OBJS})
+  add_subdirectory(kem/kyber)
+  set(KEM_OBJS ${KEM_OBJS} ${KYBER_OBJS})
 endif()
 if(OQS_ENABLE_KEM_ML_KEM)
-    add_subdirectory(kem/ml_kem)
-    set(KEM_OBJS ${KEM_OBJS} ${ML_KEM_OBJS})
+  add_subdirectory(kem/ml_kem)
+  set(KEM_OBJS ${KEM_OBJS} ${ML_KEM_OBJS})
 endif()
 if(OQS_ENABLE_SIG_DILITHIUM)
-    add_subdirectory(sig/dilithium)
-    set(SIG_OBJS ${SIG_OBJS} ${DILITHIUM_OBJS})
+  add_subdirectory(sig/dilithium)
+  set(SIG_OBJS ${SIG_OBJS} ${DILITHIUM_OBJS})
 endif()
 if(OQS_ENABLE_SIG_ML_DSA)
-    add_subdirectory(sig/ml_dsa)
-    set(SIG_OBJS ${SIG_OBJS} ${ML_DSA_OBJS})
+  add_subdirectory(sig/ml_dsa)
+  set(SIG_OBJS ${SIG_OBJS} ${ML_DSA_OBJS})
 endif()
 if(OQS_ENABLE_SIG_FALCON)
-    add_subdirectory(sig/falcon)
-    set(SIG_OBJS ${SIG_OBJS} ${FALCON_OBJS})
+  add_subdirectory(sig/falcon)
+  set(SIG_OBJS ${SIG_OBJS} ${FALCON_OBJS})
 endif()
 if(OQS_ENABLE_SIG_SPHINCS)
-    add_subdirectory(sig/sphincs)
-    set(SIG_OBJS ${SIG_OBJS} ${SPHINCS_OBJS})
+  add_subdirectory(sig/sphincs)
+  set(SIG_OBJS ${SIG_OBJS} ${SPHINCS_OBJS})
 endif()
-##### OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ALG_OBJECTS_END
+# # # ## OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ALG_OBJECTS_END
+
+if(OQS_ENABLE_SIG_KAZ_SIGN)
+  add_subdirectory(sig/kaz_sign)
+  set(SIG_OBJS ${SIG_OBJS} ${KAZ_SIGN_OBJS})
+endif()
 
 add_library(oqs kem/kem.c
                 ${KEM_OBJS}
@@ -65,13 +70,25 @@ add_library(oqs kem/kem.c
 # Internal library to be used only by test programs
 add_library(oqs-internal STATIC ${INTERNAL_OBJS})
 
+add_library(libgmp STATIC IMPORTED)
+if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
+  set_target_properties(libgmp PROPERTIES IMPORTED_LOCATION /opt/homebrew/opt/gmp/lib/libgmp.a)
+elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
+  set_target_properties(libgmp PROPERTIES IMPORTED_LOCATION /usr/lib/x86_64-linux-gnu/libgmp.a)
+endif()
+
+target_link_libraries(oqs-internal PRIVATE "-lgmp")
+set_target_properties(oqs-internal PROPERTIES LINK_FLAGS "-lgmp")
+
+target_link_libraries(oqs PRIVATE libgmp)
+
 if(DEFINED SANITIZER_LD_FLAGS)
-    target_link_libraries(oqs PUBLIC ${SANITIZER_LD_FLAGS})
-    target_link_libraries(oqs-internal PUBLIC ${SANITIZER_LD_FLAGS})
+  target_link_libraries(oqs PUBLIC ${SANITIZER_LD_FLAGS})
+  target_link_libraries(oqs-internal PUBLIC ${SANITIZER_LD_FLAGS})
 endif()
 if(${OQS_USE_OPENSSL})
-    target_link_libraries(oqs PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
-    target_link_libraries(oqs-internal PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
+  target_link_libraries(oqs PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
+  target_link_libraries(oqs-internal PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
 endif()
 
 target_include_directories(oqs
@@ -87,7 +104,7 @@ target_include_directories(oqs-internal
 )
 
 if(MINGW)
-    target_link_options(oqs-internal PRIVATE -Wl,--export-all-symbols)
+  target_link_options(oqs-internal PRIVATE -Wl,--export-all-symbols)
 endif()
 
 set_target_properties(oqs
@@ -120,7 +137,7 @@ write_basic_package_version_file(
 )
 
 if(OQS_USE_OPENSSL)
-    set(_oqs_pkgconfig_requires_private openssl)
+  set(_oqs_pkgconfig_requires_private openssl)
 endif()
 
 # generate pkg-config file
