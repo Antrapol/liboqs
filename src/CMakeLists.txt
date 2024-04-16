@@ -21,7 +21,7 @@ if(OQS_ENABLE_KEM_NTRUPRIME)
   add_subdirectory(kem/ntruprime)
   set(KEM_OBJS ${KEM_OBJS} ${NTRUPRIME_OBJS})
 endif()
-# # # ## OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ALG_OBJECTS_START
+# # # # # OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ALG_OBJECTS_START
 if(OQS_ENABLE_KEM_CLASSIC_MCELIECE)
   add_subdirectory(kem/classic_mceliece)
   set(KEM_OBJS ${KEM_OBJS} ${CLASSIC_MCELIECE_OBJS})
@@ -54,7 +54,7 @@ if(OQS_ENABLE_SIG_SPHINCS)
   add_subdirectory(sig/sphincs)
   set(SIG_OBJS ${SIG_OBJS} ${SPHINCS_OBJS})
 endif()
-# # # ## OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ALG_OBJECTS_END
+# # # # # OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ALG_OBJECTS_END
 
 if(OQS_ENABLE_SIG_KAZ_SIGN)
   add_subdirectory(sig/kaz_sign)
@@ -80,7 +80,9 @@ endif()
 target_link_libraries(oqs-internal PRIVATE "-lgmp")
 set_target_properties(oqs-internal PROPERTIES LINK_FLAGS "-lgmp")
 
-target_link_libraries(oqs PRIVATE libgmp)
+#target_link_libraries(oqs PRIVATE libgmp)
+target_link_libraries(oqs PRIVATE "-lgmp")
+set_target_properties(oqs PROPERTIES LINK_FLAGS "-lgmp")
 
 if(DEFINED SANITIZER_LD_FLAGS)
   target_link_libraries(oqs PUBLIC ${SANITIZER_LD_FLAGS})
