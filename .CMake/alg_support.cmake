@@ -52,11 +52,11 @@ if(DEFINED OQS_SIG_DEFAULT)
 endif()
 
 # Only enable OpenSSL by default on not-Windows
-if(NOT WIN32)
-  option(OQS_USE_OPENSSL "Enable OpenSSL usage" ON)
-else()
-  option(OQS_USE_OPENSSL "Enable OpenSSL usage" OFF)
-endif()
+#if(NOT WIN32)
+#  option(OQS_USE_OPENSSL "Enable OpenSSL usage" ON)
+#else()
+option(OQS_USE_OPENSSL "Enable OpenSSL usage" OFF)
+#endif()
 
 # Use OpenSSL's AES only if no AESNI and x86 dist build is used.
 # Reason: AESNI implementation better fits our incremental API.
@@ -101,7 +101,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux|Darwin")
   endif()
 endif()
 
-# # # ## OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ENABLE_BY_ALG_START
+# # # # # OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ENABLE_BY_ALG_START
 option(OQS_ENABLE_KEM_CLASSIC_MCELIECE "Enable classic_mceliece algorithm family" ON)
 cmake_dependent_option(OQS_ENABLE_KEM_classic_mceliece_348864 "" ON "OQS_ENABLE_KEM_CLASSIC_MCELIECE" OFF)
 cmake_dependent_option(OQS_ENABLE_KEM_classic_mceliece_348864f "" ON "OQS_ENABLE_KEM_CLASSIC_MCELIECE" OFF)
@@ -164,7 +164,7 @@ cmake_dependent_option(OQS_ENABLE_SIG_sphincs_shake_192f_simple "" ON "OQS_ENABL
 cmake_dependent_option(OQS_ENABLE_SIG_sphincs_shake_192s_simple "" ON "OQS_ENABLE_SIG_SPHINCS" OFF)
 cmake_dependent_option(OQS_ENABLE_SIG_sphincs_shake_256f_simple "" ON "OQS_ENABLE_SIG_SPHINCS" OFF)
 cmake_dependent_option(OQS_ENABLE_SIG_sphincs_shake_256s_simple "" ON "OQS_ENABLE_SIG_SPHINCS" OFF)
-# # # ## OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ENABLE_BY_ALG_END
+# # # # # OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ENABLE_BY_ALG_END
 
 option(OQS_ENABLE_SIG_KAZ_SIGN "Enable KAZ-SIGN algorithm family" ON)
 cmake_dependent_option(OQS_ENABLE_SIG_kaz_sign_1 "" ON "OQS_ENABLE_SIG_KAZ_SIGN" OFF)
@@ -182,9 +182,9 @@ endif()
 if(NOT ((OQS_MINIMAL_BUILD STREQUAL "") OR (OQS_MINIMAL_BUILD STREQUAL "OFF")))
   filter_algs("${OQS_MINIMAL_BUILD}")
 elseif (${OQS_ALGS_ENABLED} STREQUAL "STD")
-  # # # ## OQS_COPY_FROM_UPSTREAM_FRAGMENT_LIST_STANDARDIZED_ALGS_START
+  # # # # # OQS_COPY_FROM_UPSTREAM_FRAGMENT_LIST_STANDARDIZED_ALGS_START
   filter_algs("KEM_ml_kem_512;KEM_ml_kem_768;KEM_ml_kem_1024;SIG_ml_dsa_44;SIG_ml_dsa_65;SIG_ml_dsa_87;SIG_falcon_512;SIG_falcon_1024;SIG_falcon_padded_512;SIG_falcon_padded_1024;SIG_sphincs_sha2_128f_simple;SIG_sphincs_sha2_128s_simple;SIG_sphincs_sha2_192f_simple;SIG_sphincs_sha2_192s_simple;SIG_sphincs_sha2_256f_simple;SIG_sphincs_sha2_256s_simple;SIG_sphincs_shake_128f_simple;SIG_sphincs_shake_128s_simple;SIG_sphincs_shake_192f_simple;SIG_sphincs_shake_192s_simple;SIG_sphincs_shake_256f_simple;SIG_sphincs_shake_256s_simple")
-  # # # ## OQS_COPY_FROM_UPSTREAM_FRAGMENT_LIST_STANDARDIZED_ALGS_END
+  # # # # # OQS_COPY_FROM_UPSTREAM_FRAGMENT_LIST_STANDARDIZED_ALGS_END
 elseif(${OQS_ALGS_ENABLED} STREQUAL "NIST_R4")
   filter_algs("KEM_classic_mceliece_348864;KEM_classic_mceliece_348864f;KEM_classic_mceliece_460896;KEM_classic_mceliece_460896f;KEM_classic_mceliece_6688128;KEM_classic_mceliece_6688128f;KEM_classic_mceliece_6960119;KEM_classic_mceliece_6960119f;KEM_classic_mceliece_8192128;KEM_classic_mceliece_8192128f;KEM_hqc_128;KEM_hqc_192;KEM_hqc_256;KEM_bike_l1;KEM_bike_l3;KEM_bike_l5")
 else()
@@ -192,7 +192,7 @@ else()
 endif()
 
 
-# # # ## OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ENABLE_BY_ALG_CONDITIONAL_START
+# # # # # OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ENABLE_BY_ALG_CONDITIONAL_START
 if(CMAKE_SYSTEM_NAME MATCHES "Linux|Darwin")
   if(OQS_DIST_X86_64_BUILD OR (OQS_USE_AVX2_INSTRUCTIONS AND OQS_USE_POPCNT_INSTRUCTIONS))
     cmake_dependent_option(OQS_ENABLE_KEM_classic_mceliece_348864_avx2 "" ON "OQS_ENABLE_KEM_classic_mceliece_348864" OFF)
@@ -498,7 +498,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux|Darwin")
   endif()
 endif()
 
-# # # ## OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ENABLE_BY_ALG_CONDITIONAL_END
+# # # # # OQS_COPY_FROM_UPSTREAM_FRAGMENT_ADD_ENABLE_BY_ALG_CONDITIONAL_END
 
 # Set XKCP (Keccak) required for Sphincs AVX2 code even if OpenSSL3 SHA3 is used:
 if (${OQS_ENABLE_SIG_SPHINCS} OR NOT ${OQS_USE_SHA3_OPENSSL})

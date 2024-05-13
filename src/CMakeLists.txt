@@ -88,6 +88,7 @@ if(DEFINED SANITIZER_LD_FLAGS)
   target_link_libraries(oqs PUBLIC ${SANITIZER_LD_FLAGS})
   target_link_libraries(oqs-internal PUBLIC ${SANITIZER_LD_FLAGS})
 endif()
+
 if(${OQS_USE_OPENSSL})
   target_link_libraries(oqs PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
   target_link_libraries(oqs-internal PRIVATE ${OPENSSL_CRYPTO_LIBRARY})

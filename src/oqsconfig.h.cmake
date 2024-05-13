@@ -18,10 +18,10 @@
 #cmakedefine USE_SANITIZER "@USE_SANITIZER@"
 #cmakedefine CMAKE_BUILD_TYPE "@CMAKE_BUILD_TYPE@"
 
-#cmakedefine OQS_USE_OPENSSL 1
-#cmakedefine OQS_USE_AES_OPENSSL 1
-#cmakedefine OQS_USE_SHA2_OPENSSL 1
-#cmakedefine OQS_USE_SHA3_OPENSSL 1
+#cmakedefine OQS_USE_OPENSSL 0
+#cmakedefine OQS_USE_AES_OPENSSL 0
+#cmakedefine OQS_USE_SHA2_OPENSSL 0
+#cmakedefine OQS_USE_SHA3_OPENSSL 0
 
 #cmakedefine OQS_EMBEDDED_BUILD 1
 
