@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef KS5_DEBUG
 static void print_content(char *tag, unsigned char *buffer,
                           unsigned long long length) {
   printf("%s : ", tag);
@@ -12,6 +13,7 @@ static void print_content(char *tag, unsigned char *buffer,
     printf("%02x", buffer[i]);
   printf("\n");
 }
+#endif
 
 int kaz_sign_5_crypto_sign_keypair(unsigned char *pk, unsigned char *sk) {
   KS5_KAZ_DS_KeyGen(pk, sk);

@@ -91,7 +91,7 @@ int seedexpander(AES_XOF_struct *ctx, unsigned char *x, unsigned long xlen) {
 
   offset = 0;
   while (xlen > 0) {
-    if (xlen <= (16 - ctx->buffer_pos)) { // buffer has what we need
+    if (((int)xlen) <= (16 - ctx->buffer_pos)) { // buffer has what we need
       memcpy(x + offset, ctx->buffer + ctx->buffer_pos, xlen);
       ctx->buffer_pos += xlen;
 
@@ -162,6 +162,7 @@ void randombytes_init(unsigned char *entropy_input,
                       int security_strength) {
   unsigned char seed_material[48];
 
+  if(security_strength > 0) {}
   memcpy(seed_material, entropy_input, 48);
   if (personalization_string)
     for (int i = 0; i < 48; i++)

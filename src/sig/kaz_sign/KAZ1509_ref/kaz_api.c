@@ -19,14 +19,14 @@ static void HashMsg(const unsigned char *msg, unsigned long long mlen,
   sha256_final(&hash, buf);
 }
 
-static void print_buffer(const char *tag, unsigned char *buf,
-                         unsigned int bufLen) {
-  printf("%s : ", tag);
-  for (int i = 0; i < bufLen; i++)
-    printf("%02x", buf[i]);
-
-  printf("\n");
-}
+//static void print_buffer(const char *tag, unsigned char *buf,
+//                         unsigned int bufLen) {
+//  printf("%s : ", tag);
+//  for (int i = 0; i < bufLen; i++)
+//    printf("%02x", buf[i]);
+//
+//  printf("\n");
+//}
 
 static void KAZ_DS_CRT(int size, mpz_t *x, mpz_t *modulus, mpz_t crt) {
   mpz_t *c = malloc(size * sizeof(mpz_t));
@@ -67,7 +67,9 @@ static void KAZ_DS_CRT(int size, mpz_t *x, mpz_t *modulus, mpz_t crt) {
   for (int i = 0; i < size; i++)
     mpz_clear(c[i]);
 
-  free(c);
+  if (c != NULL)
+    free(c);
+
   mpz_clears(u, prod, NULL);
 }
 
@@ -151,8 +153,7 @@ static void KAZ_DS_RANDOM(int lb, int ub, mpz_t out) {
   int read = fread(&r, sizeof(unsigned int), 1, h);
   // printf("/dev/urandom %d\n", r);
 
-  if (r < 0)
-    r *= -1;
+  if(read > 0) {}
 
   do {
     // gmp_randseed_ui(gmpRandState, rand() + sd);
@@ -242,8 +243,11 @@ static void KAZ_DS_FILTER(mpz_t VQ, mpz_t V2, mpz_t GRg, mpz_t Q, mpz_t qQ,
 
   mpz_clears(modulus, GCD, soln, check1, check2, NULL);
 
-  free(e);
-  free(p);
+  if(e != NULL)
+    free(e);
+
+  if(p != NULL)
+    free(p);
 
   for (int i = 0; i < nGRgQ; i++)
     mpz_clear(pFactors[i]);
@@ -254,9 +258,14 @@ static void KAZ_DS_FILTER(mpz_t VQ, mpz_t V2, mpz_t GRg, mpz_t Q, mpz_t qQ,
   for (int i = 0; i < 2; i++)
     mpz_clear(y[i]);
 
-  free(pFactors);
-  free(x);
-  free(y);
+  if(pFactors != NULL)
+    free(pFactors);
+
+  if(x != NULL)
+    free(x);
+
+  if(y != NULL)
+    free(y);
 }
 
 void KS1_KAZ_DS_KeyGen(unsigned char *kaz_ds_verify_key,
@@ -316,36 +325,36 @@ void KS1_KAZ_DS_KeyGen(unsigned char *kaz_ds_verify_key,
 
   unsigned char *ALPHABYTE =
       (unsigned char *)malloc(ALPHASIZE * sizeof(unsigned char));
+  unsigned char *BBYTE = (unsigned char *)malloc(BSIZE * sizeof(unsigned char));
+  unsigned char *V1BYTE =
+      (unsigned char *)malloc(V1SIZE * sizeof(unsigned char));
+  unsigned char *V2BYTE =
+      (unsigned char *)malloc(V2SIZE * sizeof(unsigned char));
   if (ALPHABYTE == NULL) {
     printf("Keygen memory allocation failed 1\n");
     goto cleanup;
   }
-
-  mpz_export(ALPHABYTE, &ALPHASIZE, 1, sizeof(char), 0, 0, ALPHA);
-
-  unsigned char *BBYTE = (unsigned char *)malloc(BSIZE * sizeof(unsigned char));
+  
   if (BBYTE == NULL) {
     printf("Keygen memory allocation failed 2\n");
     goto cleanup;
   }
 
-  mpz_export(BBYTE, &BSIZE, 1, sizeof(char), 0, 0, b);
-
-  unsigned char *V1BYTE =
-      (unsigned char *)malloc(V1SIZE * sizeof(unsigned char));
   if (V1BYTE == NULL) {
     printf("Keygen memory allocation failed 3\n");
     goto cleanup;
   }
 
-  mpz_export(V1BYTE, &V1SIZE, 1, sizeof(char), 0, 0, V1);
-
-  unsigned char *V2BYTE =
-      (unsigned char *)malloc(V2SIZE * sizeof(unsigned char));
   if (V2BYTE == NULL) {
     printf("Keygen memory allocation failed 4\n");
     goto cleanup;
   }
+
+  mpz_export(ALPHABYTE, &ALPHASIZE, 1, sizeof(char), 0, 0, ALPHA);
+
+  mpz_export(BBYTE, &BSIZE, 1, sizeof(char), 0, 0, b);
+
+  mpz_export(V1BYTE, &V1SIZE, 1, sizeof(char), 0, 0, V1);
 
   mpz_export(V2BYTE, &V2SIZE, 1, sizeof(char), 0, 0, V2);
 
@@ -381,10 +390,17 @@ void KS1_KAZ_DS_KeyGen(unsigned char *kaz_ds_verify_key,
 cleanup:
   mpz_clears(N, GRg, phiGRg, phiphiGRg, phiGg, q, GRgq, Q, phiQ, qQ, NULL);
   mpz_clears(a, b, ALPHA, V1, V2, tmp, NULL);
-  free(ALPHABYTE);
-  free(BBYTE);
-  free(V1BYTE);
-  free(V2BYTE);
+  if (ALPHABYTE != NULL)
+    free(ALPHABYTE);
+
+  if (BBYTE != NULL)
+    free(BBYTE);
+
+  if(V1BYTE != NULL)
+    free(V1BYTE);
+
+  if(V2BYTE != NULL)
+    free(V2BYTE);
 }
 
 int KS1_KAZ_DS_SIGNATURE_DETACHED(unsigned char *signature,
@@ -408,21 +424,26 @@ int KS1_KAZ_DS_SIGNATURE_DETACHED(unsigned char *signature,
   mpz_set_str(phiqQ, KS1_KAZ_DS_SP_PHIqQ, 10);
 
   // 2) Get kaz_ds_sign_key=(ALPHA, b)
-  unsigned char *ALPHABYTE =
-      calloc(KS1_KAZ_DS_ALPHABYTES, sizeof(unsigned char));
+  unsigned char *ALPHABYTE = NULL;
+  
+  unsigned char *BBYTE = NULL;
+  
+  unsigned char *SBYTE = NULL;
+  
+  ALPHABYTE = calloc(KS1_KAZ_DS_ALPHABYTES, sizeof(unsigned char));
   if (ALPHABYTE == NULL) {
     printf("Sign memory allocation failed 1");
     ret = -10;
     goto cleanup;
   }
 
-  unsigned char *BBYTE = calloc(KS1_KAZ_DS_BBYTES, sizeof(unsigned char));
+  BBYTE = calloc(KS1_KAZ_DS_BBYTES, sizeof(unsigned char));
   if (BBYTE == NULL) {
     printf("Sign memory allocation failed 2");
     ret = -11;
     goto cleanup;
   }
-
+  
   memcpy(ALPHABYTE, sk, KS1_KAZ_DS_ALPHABYTES);
   memcpy(BBYTE, sk + KS1_KAZ_DS_ALPHABYTES, KS1_KAZ_DS_BBYTES);
 
@@ -455,8 +476,9 @@ int KS1_KAZ_DS_SIGNATURE_DETACHED(unsigned char *signature,
 
   // 6) Set signature=(S, m)
   size_t SSIZE = mpz_sizeinbase(S, 16);
+  
+  SBYTE = (unsigned char *)malloc(SSIZE * sizeof(unsigned char));
 
-  unsigned char *SBYTE = (unsigned char *)malloc(SSIZE * sizeof(unsigned char));
   if (SBYTE == NULL) {
     printf("Sign memory allocation failed 3");
     ret = -12;
@@ -471,9 +493,14 @@ int KS1_KAZ_DS_SIGNATURE_DETACHED(unsigned char *signature,
   *signlen = KS1_KAZ_DS_SBYTES;
 
 cleanup:
-  free(SBYTE);
-  free(ALPHABYTE);
-  free(BBYTE);
+  if(SBYTE != NULL)
+    free(SBYTE);
+
+  if(ALPHABYTE != NULL)
+    free(ALPHABYTE);
+
+  if(BBYTE != NULL)
+    free(BBYTE);
 
   mpz_clears(phiGg, phiphiGRg, phiQ, GRgqQ, phiGRgqQ, qQ, phiqQ, ALPHA, b,
              NULL);
@@ -551,7 +578,7 @@ int KS1_KAZ_DS_SIGNATURE(unsigned char *signature, unsigned long long *signlen,
   unsigned char *SBYTE = (unsigned char *)malloc(SSIZE * sizeof(unsigned char));
   mpz_export(SBYTE, &SSIZE, 1, sizeof(char), 0, 0, S);
 
-  for (int i = 0; i < mlen + KS1_KAZ_DS_SBYTES; i++)
+  for (int i = 0; i < (int)(mlen + KS1_KAZ_DS_SBYTES); i++)
     signature[i] = 0;
 
   int je = mlen + KS1_KAZ_DS_SBYTES - 1;
@@ -568,9 +595,14 @@ int KS1_KAZ_DS_SIGNATURE(unsigned char *signature, unsigned long long *signlen,
 
   *signlen = mlen + KS1_KAZ_DS_SBYTES;
 
-  free(SBYTE);
-  free(ALPHABYTE);
-  free(BBYTE);
+  if(SBYTE != NULL)
+    free(SBYTE);
+
+  if(ALPHABYTE != NULL)
+    free(ALPHABYTE);
+
+  if(BBYTE != NULL)
+    free(BBYTE);
 
   mpz_clears(phiGg, phiphiGRg, phiQ, GRgqQ, phiGRgqQ, qQ, phiqQ, ALPHA, b,
              NULL);
@@ -607,17 +639,23 @@ int KS1_KAZ_DS_VERIFICATION_DETACHED(const unsigned char *m, unsigned int mlen,
   mpz_set_str(qQ, KS1_KAZ_DS_SP_qQ, 10);
   mpz_set_str(phiqQ, KS1_KAZ_DS_SP_PHIqQ, 10);
 
-  int n = KS1_KAZ_DS_SP_n;
+  //int n = KS1_KAZ_DS_SP_n;
 
   // 2) Get kaz_ds_verify_key=(V1, V2)
-  unsigned char *V1BYTE = calloc(KS1_KAZ_DS_V1BYTES, sizeof(unsigned char));
+  unsigned char *V1BYTE = NULL; 
+  unsigned char *V2BYTE = NULL;
+  
+  mpz_t *x = NULL; 
+  mpz_t *modulus = NULL;
+
+  V1BYTE = calloc(KS1_KAZ_DS_V1BYTES, sizeof(unsigned char));
   if (V1BYTE == NULL) {
     printf("Verify memory allocation failed 1");
     ret = -10;
     goto cleanup;
   }
 
-  unsigned char *V2BYTE = calloc(KS1_KAZ_DS_V2BYTES, sizeof(unsigned char));
+  V2BYTE = calloc(KS1_KAZ_DS_V2BYTES, sizeof(unsigned char));
   if (V2BYTE == NULL) {
     printf("Verify memory allocation failed 2");
     ret = -11;
@@ -631,6 +669,7 @@ int KS1_KAZ_DS_VERIFICATION_DETACHED(const unsigned char *m, unsigned int mlen,
   mpz_import(V2, KS1_KAZ_DS_V2BYTES, 1, sizeof(unsigned char), 0, 0, V2BYTE);
 
   // 3) Get signature=(S, m)
+  if(smlen != KS1_KAZ_DS_SBYTES) {}
   mpz_import(S, KS1_KAZ_DS_SBYTES, 1, sizeof(unsigned char), 0, 0, sm);
 
   // 4) Compute the hash value of the message
@@ -646,8 +685,8 @@ int KS1_KAZ_DS_VERIFICATION_DETACHED(const unsigned char *m, unsigned int mlen,
   mpz_mul(y, y, tmp);
   mpz_mod(y, y, GRgQ);
 
-  mpz_t *x = malloc(2 * sizeof(mpz_t));
-  mpz_t *modulus = malloc(2 * sizeof(mpz_t));
+  x = malloc(2 * sizeof(mpz_t));
+  modulus = malloc(2 * sizeof(mpz_t));
 
   for (int i = 0; i < 2; i++)
     mpz_init(x[i]);
@@ -735,15 +774,20 @@ cleanup:
   for (int i = 0; i < 2; i++)
     mpz_clear(x[i]);
 
-  free(x);
+  if (x != NULL)
+    free(x);
 
   for (int i = 0; i < 2; i++)
     mpz_clear(modulus[i]);
 
-  free(modulus);
+  if(modulus != NULL)
+    free(modulus);
 
-  free(V1BYTE);
-  free(V2BYTE);
+  if(V1BYTE != NULL)
+    free(V1BYTE);
+
+  if(V2BYTE != NULL)
+    free(V2BYTE);
 
   return ret;
 }
@@ -774,7 +818,7 @@ int KS1_KAZ_DS_VERIFICATION(unsigned char *m, unsigned long long *mlen,
   mpz_set_str(qQ, KS1_KAZ_DS_SP_qQ, 10);
   mpz_set_str(phiqQ, KS1_KAZ_DS_SP_PHIqQ, 10);
 
-  int n = KS1_KAZ_DS_SP_n;
+  //int n = KS1_KAZ_DS_SP_n;
 
   // 2) Get kaz_ds_verify_key=(V1, V2)
   unsigned char *V1BYTE =
@@ -914,16 +958,27 @@ int KS1_KAZ_DS_VERIFICATION(unsigned char *m, unsigned long long *mlen,
 
   for (int i = 0; i < 2; i++)
     mpz_clear(x[i]);
-  free(x);
+  
+  if(x != NULL)
+    free(x);
 
   for (int i = 0; i < 2; i++)
     mpz_clear(modulus[i]);
-  free(modulus);
+  
+  if(modulus != NULL)
+    free(modulus);
 
-  free(V1BYTE);
-  free(V2BYTE);
-  free(SBYTE);
-  free(MBYTE);
+  if (V1BYTE != NULL)
+    free(V1BYTE);
+
+  if(V2BYTE != NULL)
+    free(V2BYTE);
+
+  if(SBYTE != NULL)
+    free(SBYTE);
+
+  if(MBYTE != NULL)
+    free(MBYTE);
 
   return 0;
 }
