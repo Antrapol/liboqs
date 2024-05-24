@@ -34,12 +34,12 @@ protection within the United States.
 #define api_h
 
 //  Set these three values appropriately for your algorithm
-#define CRYPTO_SECRETKEYBYTES 134
-#define CRYPTO_PUBLICKEYBYTES 84
-#define CRYPTO_BYTES 32
+#define KS3_CRYPTO_SECRETKEYBYTES 134
+#define KS3_CRYPTO_PUBLICKEYBYTES 84
+#define KS3_CRYPTO_BYTES 32
 
 // Change the algorithm name
-#define CRYPTO_ALGNAME "KAZ-SIGN-3"
+#define KS3_CRYPTO_ALGNAME "KAZ-SIGN-3"
 
 int kaz_sign_3_crypto_sign_keypair(unsigned char *pk, unsigned char *sk);
 

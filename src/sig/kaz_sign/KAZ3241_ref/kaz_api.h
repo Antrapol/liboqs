@@ -81,8 +81,8 @@
 #define KS5_KAZ_DS_V2BYTES 50
 #define KS5_KAZ_DS_SBYTES 72
 
-extern void KS5_KAZ_DS_KeyGen(unsigned char *kaz_ds_verify_key,
-                              unsigned char *kaz_ds_sign_key);
+extern int KS5_KAZ_DS_KeyGen(unsigned char *kaz_ds_verify_key,
+                             unsigned char *kaz_ds_sign_key);
 
 extern int KS5_KAZ_DS_SIGNATURE(unsigned char *signature,
                                 unsigned long long *signlen,

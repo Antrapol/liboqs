@@ -58,7 +58,7 @@ static void KAZ_DS_CRT(int size, mpz_t *x, mpz_t *modulus, mpz_t crt) {
   for (int i = 0; i < size; i++)
     mpz_clear(c[i]);
 
-  if(c != NULL)
+  if (c != NULL)
     free(c);
 
   mpz_clears(u, prod, NULL);
@@ -140,7 +140,8 @@ static void KAZ_DS_RANDOM(int lb, int ub, mpz_t out) {
   FILE *h = fopen("/dev/urandom", "rb");
   int read = fread(&r, sizeof(unsigned int), 1, h);
 
-  if(read > 0) {}
+  if (read > 0) {
+  }
 
   do {
     gmp_randseed_ui(gmpRandState, r + sd);
@@ -161,12 +162,12 @@ static void KAZ_DS_FILTER(mpz_t VQ, mpz_t V2, mpz_t GRg, mpz_t Q, mpz_t qQ,
 
   int nGRgQ = KAZ_DS_GET_PFactors(GRgQ);
 
-  mpz_t *pFactors = NULL; 
+  mpz_t *pFactors = NULL;
   int *p = NULL;
   int *e = NULL;
   mpz_t *x = NULL;
   mpz_t *y = NULL;
-  
+
   pFactors = malloc(nGRgQ * sizeof(mpz_t));
   p = malloc(nGRgQ * sizeof(int));
   e = malloc(nGRgQ * sizeof(int));
@@ -235,10 +236,10 @@ static void KAZ_DS_FILTER(mpz_t VQ, mpz_t V2, mpz_t GRg, mpz_t Q, mpz_t qQ,
 
   mpz_clears(modulus, GCD, soln, check1, check2, NULL);
 
-  if(e != NULL)
+  if (e != NULL)
     free(e);
 
-  if(p != NULL)
+  if (p != NULL)
     free(p);
 
   for (int i = 0; i < nGRgQ; i++)
@@ -248,18 +249,21 @@ static void KAZ_DS_FILTER(mpz_t VQ, mpz_t V2, mpz_t GRg, mpz_t Q, mpz_t qQ,
   for (int i = 0; i < 2; i++)
     mpz_clear(y[i]);
 
-  if(pFactors != NULL)
+  if (pFactors != NULL)
     free(pFactors);
 
-  if(x != NULL)
+  if (x != NULL)
     free(x);
 
-  if(y != NULL)
+  if (y != NULL)
     free(y);
 }
 
-void KS3_KAZ_DS_KeyGen(unsigned char *kaz_ds_verify_key,
-                       unsigned char *kaz_ds_sign_key) {
+int KS3_KAZ_DS_KeyGen(unsigned char *kaz_ds_verify_key,
+                      unsigned char *kaz_ds_sign_key) {
+
+  int status = 0;
+
   mpz_t N, GRg, phiGRg, phiphiGRg, phiGg, q, GRgq, Q, phiQ, qQ;
   mpz_t a, b, ALPHA, V1, V2, tmp;
 
@@ -349,35 +353,55 @@ void KS3_KAZ_DS_KeyGen(unsigned char *kaz_ds_verify_key,
   }
   mpz_export(V2BYTE, &V2SIZE, 1, sizeof(char), 0, 0, V2);
 
-  for (int i = 0; i < CRYPTO_SECRETKEYBYTES; i++)
-    kaz_ds_sign_key[i] = 0;
+  memset(kaz_ds_sign_key, 0, KS3_CRYPTO_SECRETKEYBYTES * sizeof(unsigned char));
+  // for (int i = 0; i < CRYPTO_SECRETKEYBYTES; i++)
+  //   kaz_ds_sign_key[i] = 0;
 
-  int je = CRYPTO_SECRETKEYBYTES - 1;
-  for (int i = BSIZE - 1; i >= 0; i--) {
-    kaz_ds_sign_key[je] = BBYTE[i];
-    je--;
-  }
+  // doesn't work on nfast
+  // int je = CRYPTO_SECRETKEYBYTES - 1;
+  // for (int i = BSIZE - 1; i >= 0; i--) {
+  //  kaz_ds_sign_key[je] = BBYTE[i];
+  //  je--;
+  //}
 
-  je = CRYPTO_SECRETKEYBYTES - KS3_KAZ_DS_BBYTES - 1;
-  for (int i = ALPHASIZE - 1; i >= 0; i--) {
-    kaz_ds_sign_key[je] = ALPHABYTE[i];
-    je--;
-  }
+  // Fill up the buffer from left most and leave MSB zero
+  // if output is less than KS1_KAZ_DS_BBYTES
+  memcpy(&(kaz_ds_sign_key[KS3_CRYPTO_SECRETKEYBYTES - BSIZE]), BBYTE, BSIZE);
 
-  for (int i = 0; i < CRYPTO_PUBLICKEYBYTES; i++)
-    kaz_ds_verify_key[i] = 0;
+  // same algo as above
+  memcpy(&(kaz_ds_sign_key[KS3_CRYPTO_SECRETKEYBYTES - KS3_KAZ_DS_BBYTES -
+                           ALPHASIZE]),
+         ALPHABYTE, ALPHASIZE);
 
-  je = CRYPTO_PUBLICKEYBYTES - 1;
-  for (int i = V2SIZE - 1; i >= 0; i--) {
-    kaz_ds_verify_key[je] = V2BYTE[i];
-    je--;
-  }
+  // je = CRYPTO_SECRETKEYBYTES - KS3_KAZ_DS_BBYTES - 1;
+  // for (int i = ALPHASIZE - 1; i >= 0; i--) {
+  //   kaz_ds_sign_key[je] = ALPHABYTE[i];
+  //   je--;
+  // }
 
-  je = CRYPTO_PUBLICKEYBYTES - KS3_KAZ_DS_V2BYTES - 1;
-  for (int i = V1SIZE - 1; i >= 0; i--) {
-    kaz_ds_verify_key[je] = V1BYTE[i];
-    je--;
-  }
+  memset(kaz_ds_verify_key, 0,
+         KS3_CRYPTO_PUBLICKEYBYTES * sizeof(unsigned char));
+  // for (int i = 0; i < CRYPTO_PUBLICKEYBYTES; i++)
+  //   kaz_ds_verify_key[i] = 0;
+
+  memcpy(&(kaz_ds_verify_key[KS3_CRYPTO_PUBLICKEYBYTES - V2SIZE]), V2BYTE,
+         V2SIZE);
+
+  memcpy(&(kaz_ds_verify_key[KS3_CRYPTO_PUBLICKEYBYTES - KS3_KAZ_DS_V2BYTES -
+                             V1SIZE]),
+         V1BYTE, V1SIZE);
+
+  // je = CRYPTO_PUBLICKEYBYTES - 1;
+  // for (int i = V2SIZE - 1; i >= 0; i--) {
+  //   kaz_ds_verify_key[je] = V2BYTE[i];
+  //   je--;
+  // }
+
+  // je = CRYPTO_PUBLICKEYBYTES - KS3_KAZ_DS_V2BYTES - 1;
+  // for (int i = V1SIZE - 1; i >= 0; i--) {
+  //   kaz_ds_verify_key[je] = V1BYTE[i];
+  //   je--;
+  // }
 
 cleanup:
   mpz_clears(N, GRg, phiGRg, phiphiGRg, phiGg, q, GRgq, Q, phiQ, qQ, NULL);
@@ -389,11 +413,13 @@ cleanup:
   if (BBYTE != NULL)
     free(BBYTE);
 
-  if(V1BYTE != NULL)
+  if (V1BYTE != NULL)
     free(V1BYTE);
 
-  if(V2BYTE != NULL)
+  if (V2BYTE != NULL)
     free(V2BYTE);
+
+  return status;
 }
 
 int KS3_KAZ_DS_SIGNATURE(unsigned char *signature, unsigned long long *signlen,
@@ -419,10 +445,11 @@ int KS3_KAZ_DS_SIGNATURE(unsigned char *signature, unsigned long long *signlen,
   unsigned char *BBYTE = NULL;
   unsigned char *SBYTE = NULL;
 
-  ALPHABYTE = (unsigned char *)malloc((KS3_KAZ_DS_ALPHABYTES) * sizeof(unsigned char));
+  ALPHABYTE =
+      (unsigned char *)malloc((KS3_KAZ_DS_ALPHABYTES) * sizeof(unsigned char));
 
   BBYTE = (unsigned char *)malloc((KS3_KAZ_DS_BBYTES) * sizeof(unsigned char));
-  
+
   for (int i = 0; i < KS3_KAZ_DS_ALPHABYTES; i++)
     ALPHABYTE[i] = 0;
   for (int i = 0; i < KS3_KAZ_DS_BBYTES; i++)
@@ -439,10 +466,10 @@ int KS3_KAZ_DS_SIGNATURE(unsigned char *signature, unsigned long long *signlen,
   mpz_import(b, KS3_KAZ_DS_BBYTES, 1, sizeof(char), 0, 0, BBYTE);
 
   // 3) Compute HASHValue(m)
-  unsigned char buf[CRYPTO_BYTES] = {0};
+  unsigned char buf[KS3_CRYPTO_BYTES] = {0};
   HashMsg(m, mlen, buf);
 
-  mpz_import(hashValue, CRYPTO_BYTES, 1, sizeof(char), 0, 0, buf);
+  mpz_import(hashValue, KS3_CRYPTO_BYTES, 1, sizeof(char), 0, 0, buf);
   mpz_nextprime(hashValue, hashValue);
 
   // 4) Generate random r & ephemeral BETA
@@ -484,13 +511,13 @@ int KS3_KAZ_DS_SIGNATURE(unsigned char *signature, unsigned long long *signlen,
 
   *signlen = mlen + KS3_KAZ_DS_SBYTES;
 
-  if(SBYTE != NULL)
+  if (SBYTE != NULL)
     free(SBYTE);
 
-  if(ALPHABYTE != NULL)
+  if (ALPHABYTE != NULL)
     free(ALPHABYTE);
 
-  if(BBYTE != NULL)
+  if (BBYTE != NULL)
     free(BBYTE);
 
   mpz_clears(phiGg, phiphiGRg, phiQ, GRgqQ, phiGRgqQ, qQ, phiqQ, ALPHA, b,
@@ -526,19 +553,21 @@ int KS3_KAZ_DS_VERIFICATION(unsigned char *m, unsigned long long *mlen,
   mpz_set_str(qQ, KS3_KAZ_DS_SP_qQ, 10);
   mpz_set_str(phiqQ, KS3_KAZ_DS_SP_PHIqQ, 10);
 
-  //int n = KS3_KAZ_DS_SP_n;
+  // int n = KS3_KAZ_DS_SP_n;
 
   // 2) Get kaz_ds_verify_key=(V1, V2)
   unsigned char *V1BYTE = NULL;
   unsigned char *V2BYTE = NULL;
   unsigned char *SBYTE = NULL;
   unsigned char *MBYTE = NULL;
-  
+
   mpz_t *x = NULL;
   mpz_t *modulus = NULL;
 
-  V1BYTE = (unsigned char *)malloc((KS3_KAZ_DS_V1BYTES) * sizeof(unsigned char));
-  V2BYTE = (unsigned char *)malloc((KS3_KAZ_DS_V2BYTES) * sizeof(unsigned char));
+  V1BYTE =
+      (unsigned char *)malloc((KS3_KAZ_DS_V1BYTES) * sizeof(unsigned char));
+  V2BYTE =
+      (unsigned char *)malloc((KS3_KAZ_DS_V2BYTES) * sizeof(unsigned char));
 
   for (int i = 0; i < KS3_KAZ_DS_V1BYTES; i++)
     V1BYTE[i] = 0;
@@ -576,10 +605,10 @@ int KS3_KAZ_DS_VERIFICATION(unsigned char *m, unsigned long long *mlen,
   mpz_import(S, KS3_KAZ_DS_SBYTES, 1, sizeof(char), 0, 0, SBYTE);
 
   // 4) Compute the hash value of the message
-  unsigned char buf[CRYPTO_BYTES] = {0};
+  unsigned char buf[KS3_CRYPTO_BYTES] = {0};
   HashMsg(MBYTE, len, buf);
 
-  mpz_import(hashValue, CRYPTO_BYTES, 1, sizeof(char), 0, 0, buf);
+  mpz_import(hashValue, KS3_CRYPTO_BYTES, 1, sizeof(char), 0, 0, buf);
   mpz_nextprime(hashValue, hashValue);
 
   // 5) Filtering Procedures
@@ -672,25 +701,25 @@ int KS3_KAZ_DS_VERIFICATION(unsigned char *m, unsigned long long *mlen,
   for (int i = 0; i < 2; i++)
     mpz_clear(x[i]);
 
-  if(x != NULL)
+  if (x != NULL)
     free(x);
 
   for (int i = 0; i < 2; i++)
     mpz_clear(modulus[i]);
 
-  if(modulus != NULL)
+  if (modulus != NULL)
     free(modulus);
 
   if (V1BYTE != NULL)
     free(V1BYTE);
 
-  if(V2BYTE != NULL)
+  if (V2BYTE != NULL)
     free(V2BYTE);
 
-  if(SBYTE != NULL)
+  if (SBYTE != NULL)
     free(SBYTE);
 
-  if(MBYTE != NULL)
+  if (MBYTE != NULL)
     free(MBYTE);
 
   return 0;
@@ -721,7 +750,8 @@ int KS3_KAZ_DS_SIGNATURE_DETACHED(unsigned char *signature,
   unsigned char *BBYTE = NULL;
   unsigned char *SBYTE = NULL;
 
-  ALPHABYTE = (unsigned char *)calloc(KS3_KAZ_DS_ALPHABYTES, sizeof(unsigned char));
+  ALPHABYTE =
+      (unsigned char *)calloc(KS3_KAZ_DS_ALPHABYTES, sizeof(unsigned char));
   if (ALPHABYTE == NULL) {
     printf("Signing memory allocation failed 1\n");
     ret = -10;
@@ -742,10 +772,10 @@ int KS3_KAZ_DS_SIGNATURE_DETACHED(unsigned char *signature,
   mpz_import(b, KS3_KAZ_DS_BBYTES, 1, sizeof(char), 0, 0, BBYTE);
 
   // 3) Compute HASHValue(m)
-  unsigned char buf[CRYPTO_BYTES] = {0};
+  unsigned char buf[KS3_CRYPTO_BYTES] = {0};
   HashMsg(m, mlen, buf);
 
-  mpz_import(hashValue, CRYPTO_BYTES, 1, sizeof(char), 0, 0, buf);
+  mpz_import(hashValue, KS3_CRYPTO_BYTES, 1, sizeof(char), 0, 0, buf);
   mpz_nextprime(hashValue, hashValue);
 
   // 4) Generate random r & ephemeral BETA
@@ -781,13 +811,13 @@ int KS3_KAZ_DS_SIGNATURE_DETACHED(unsigned char *signature,
   *signlen = KS3_KAZ_DS_SBYTES;
 
 cleanup:
-  if(SBYTE != NULL)
+  if (SBYTE != NULL)
     free(SBYTE);
 
-  if(ALPHABYTE != NULL)
+  if (ALPHABYTE != NULL)
     free(ALPHABYTE);
 
-  if(BBYTE != NULL)
+  if (BBYTE != NULL)
     free(BBYTE);
 
   mpz_clears(phiGg, phiphiGRg, phiQ, GRgqQ, phiGRgqQ, qQ, phiqQ, ALPHA, b,
@@ -825,12 +855,12 @@ int KS3_KAZ_DS_VERIFICATION_DETACHED(const unsigned char *m, unsigned int mlen,
   mpz_set_str(qQ, KS3_KAZ_DS_SP_qQ, 10);
   mpz_set_str(phiqQ, KS3_KAZ_DS_SP_PHIqQ, 10);
 
-  //int n = KS3_KAZ_DS_SP_n;
+  // int n = KS3_KAZ_DS_SP_n;
 
   // 2) Get kaz_ds_verify_key=(V1, V2)
   unsigned char *V1BYTE = NULL;
   unsigned char *V2BYTE = NULL;
-  
+
   mpz_t *x = NULL;
   mpz_t *modulus = NULL;
 
@@ -855,14 +885,15 @@ int KS3_KAZ_DS_VERIFICATION_DETACHED(const unsigned char *m, unsigned int mlen,
   mpz_import(V2, KS3_KAZ_DS_V2BYTES, 1, sizeof(char), 0, 0, V2BYTE);
 
   // 3) Get signature=(S, m)
-  if(smlen > 0) {}
+  if (smlen > 0) {
+  }
   mpz_import(S, KS3_KAZ_DS_SBYTES, 1, sizeof(unsigned char), 0, 0, sm);
 
   // 4) Compute the hash value of the message
-  unsigned char buf[CRYPTO_BYTES] = {0};
+  unsigned char buf[KS3_CRYPTO_BYTES] = {0};
   HashMsg(m, mlen, buf);
 
-  mpz_import(hashValue, CRYPTO_BYTES, 1, sizeof(unsigned char), 0, 0, buf);
+  mpz_import(hashValue, KS3_CRYPTO_BYTES, 1, sizeof(unsigned char), 0, 0, buf);
   mpz_nextprime(hashValue, hashValue);
 
   // 5) Filtering Procedures
@@ -960,19 +991,19 @@ cleanup:
   for (int i = 0; i < 2; i++)
     mpz_clear(x[i]);
 
-  if(x != NULL)
+  if (x != NULL)
     free(x);
 
   for (int i = 0; i < 2; i++)
     mpz_clear(modulus[i]);
 
-  if(modulus != NULL)
+  if (modulus != NULL)
     free(modulus);
 
-  if(V1BYTE != NULL)
+  if (V1BYTE != NULL)
     free(V1BYTE);
 
-  if(V2BYTE != NULL)
+  if (V2BYTE != NULL)
     free(V2BYTE);
 
   return ret;

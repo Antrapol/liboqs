@@ -51,7 +51,7 @@ int kaz_sign_1_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 
 int kaz_sign_1_ref_keypair(unsigned char *public_key,
                            unsigned char *secret_key) {
-  KS1_KAZ_DS_KeyGen(public_key, secret_key);
+  int status = KS1_KAZ_DS_KeyGen(public_key, secret_key);
 
 #ifdef KS1_DEBUG
   printf("pk length : %d\n", KS1_CRYPTO_PUBLICKEYBYTES);
@@ -60,10 +60,11 @@ int kaz_sign_1_ref_keypair(unsigned char *public_key,
   print_content("sk", secret_key, KS1_CRYPTO_SECRETKEYBYTES);
 #endif
 
-  if (sizeof(public_key) != 0 || sizeof(secret_key) != 0)
-    return 0;
-  else
-    return -4;
+  // if (sizeof(public_key) != 0 || sizeof(secret_key) != 0)
+  //   return 0;
+  // else
+  //   return -4;
+  return status;
 }
 
 int kaz_sign_1_ref_signature(unsigned char *signature, unsigned int *slen,

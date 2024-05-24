@@ -50,17 +50,19 @@ int kaz_sign_3_crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 
 int kaz_sign_3_ref_keypair(unsigned char *public_key,
                            unsigned char *secret_key) {
-  KS3_KAZ_DS_KeyGen(public_key, secret_key);
+  int status = KS3_KAZ_DS_KeyGen(public_key, secret_key);
 
 #ifdef KS3_DEBUG
   print_content("pk 3 :", public_key, CRYPTO_PUBLICKEYBYTES);
   print_content("sk 3 :", secret_key, CRYPTO_SECRETKEYBYTES);
 #endif
 
-  if (sizeof(public_key) != 0 || sizeof(secret_key) != 0)
-    return 0;
-  else
-    return -4;
+  // if (sizeof(public_key) != 0 || sizeof(secret_key) != 0)
+  //   return 0;
+  // else
+  //   return -4;
+
+  return status;
 }
 
 int kaz_sign_3_ref_signature(unsigned char *signature, unsigned int *slen,
